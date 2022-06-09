@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/Vanek623/BabyTracker/internal/service/product"
 	"log"
 	"os"
 
@@ -27,14 +28,47 @@ func main() {
 
 	updates := bot.GetUpdatesChan(u)
 
+	productService := product.NewService()
+
 	for update := range updates {
 		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+			switch update.Message.Command() {
+			case "help":
+				helpCommand(bot, update.Message)
+			case "list":
+				listCommand(bot, update.Message, productService)
+			default:
+				defaultBeh(bot, update.Message)
 
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Ты сказал "+update.Message.Text)
-			//msg.ReplyToMessageID = update.Message.MessageID
-
-			bot.Send(msg)
+			}
 		}
 	}
+}
+
+func helpCommand(bot *tgbotapi.BotAPI, messageIn *tgbotapi.Message) {
+	msg := tgbotapi.NewMessage(messageIn.Chat.ID, "/help\n/list")
+
+	bot.Send(msg)
+}
+
+func defaultBeh(bot *tgbotapi.BotAPI, messageIn *tgbotapi.Message) {
+	//log.Printf("[%s] %s", messageIn.From.UserName, messageIn.Text)
+
+	msg := tgbotapi.NewMessage(messageIn.Chat.ID, "Я люблю Аню!\nАня - лучшая жена!")
+
+	//msg.ReplyToMessageID = update.Message.MessageID
+
+	bot.Send(msg)
+}
+
+func listCommand(bot *tgbotapi.BotAPI, messageIn *tgbotapi.Message, productService *product.Service) {
+	text := ""
+
+	for _, p := range productService.List() {
+		text += p.Title + "\n"
+	}
+
+	msg := tgbotapi.NewMessage(messageIn.Chat.ID, text)
+
+	bot.Send(msg)
 }
