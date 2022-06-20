@@ -1,6 +1,9 @@
 package commands
 
-import tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+import (
+	"encoding/json"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
 
 func (c *Commander) List(messageIn *tgbotapi.Message) {
 	text := ""
@@ -11,9 +14,12 @@ func (c *Commander) List(messageIn *tgbotapi.Message) {
 
 	msg := tgbotapi.NewMessage(messageIn.Chat.ID, text)
 
+	serialized, _ := json.Marshal(CommandData{
+		Offset: 21,
+	})
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Next page", "list_10"),
+			tgbotapi.NewInlineKeyboardButtonData("Next page", string(serialized)),
 		),
 	)
 
